@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  lottery-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lottery-agent-app
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEBUG=${DEBUG:-false}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - WORKERS=${WORKERS:-4}
+      - MAX_CONCURRENT_REQUESTS=${MAX_CONCURRENT_REQUESTS:-50}
+      - MAX_QUEUE_SIZE=${MAX_QUEUE_SIZE:-500}
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-60}
+      - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-60}
+      - MAX_REQUESTS_PER_WINDOW=${MAX_REQUESTS_PER_WINDOW:-100}
+      - SESSION_TIMEOUT=${SESSION_TIMEOUT:-3600}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - lottery-network
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+networks:
+  lottery-network:
+    driver: bridge

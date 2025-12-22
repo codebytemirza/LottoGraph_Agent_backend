@@ -1,0 +1,66 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.Python
+venv/
+env/
+.venv
+*.egg
+dist/
+build/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+*.sublime-project
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+.Directory
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov/
+
+# Documentation
+docs/
+README.md
+
+# CI/CD
+.github/workflows
+
+# Environment
+.env
+.env.local
+*.pem
+*.key
+
+# Temporary
+*.tmp
+*.temp
+.cache/
+
+# Node
+node_modules/
+npm-debug.log
+
+# Audio files
+*.wav
+*.mp3
+*.pcm
