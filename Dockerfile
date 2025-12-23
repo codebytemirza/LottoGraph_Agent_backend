@@ -1,24 +1,27 @@
 # ============================================================================
 # Multi-stage Dockerfile for FastAPI + LangGraph Production
+# Optimized for Coolify deployment with security and performance best practices
 # ============================================================================
 
 # ============================================================================
 # Stage 1: Builder - Compile dependencies
 # ============================================================================
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
-# Install system build dependencies
+# Install system build dependencies (including MySQL client dev libraries)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     make \
     libffi-dev \
     libssl-dev \
+    libmysqlclient-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy only requirements first (better caching)
+# Copy only requirements first (better layer caching)
 COPY requirements.txt .
 
 # Install pip tools and create wheels
@@ -33,26 +36,27 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install runtime dependencies only (curl for healthcheck)
+# Install only essential runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
+    libmysqlclient21 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
 # Create non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser -u 1000 appuser
+RUN groupadd -r appuser && useradd -r -g appuser -u 1000 -s /sbin/nologin appuser
 
 # Copy wheels from builder stage
 COPY --from=builder /build/wheels /wheels
 COPY --from=builder /build/requirements.txt .
 
-# Install dependencies from pre-built wheels (faster & no compilation)
+# Install dependencies from pre-built wheels
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt && \
-    rm -rf /wheels /root/.cache
+    rm -rf /wheels /root/.cache /tmp/*
 
-# Copy application code
+# Copy application code with correct ownership
 COPY --chown=appuser:appuser . .
 
 # Create logs directory with correct permissions
