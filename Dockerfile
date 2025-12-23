@@ -10,14 +10,15 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
-# Install system build dependencies (including MySQL client dev libraries)
+# Install system build dependencies (MariaDB replaces MySQL in Debian Trixie)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     make \
     libffi-dev \
     libssl-dev \
-    libmysqlclient-dev \
+    libmariadb-dev \
+    libmariadb-dev-compat \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
@@ -36,11 +37,11 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install only essential runtime dependencies
+# Install only essential runtime dependencies (MariaDB client instead of MySQL)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
-    libmysqlclient21 \
+    libmariadb3 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
